@@ -1,0 +1,2 @@
+CREATE DATABASE logs;
+CREATE DATABASE authors;

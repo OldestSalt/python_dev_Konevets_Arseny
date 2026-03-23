@@ -1,0 +1,41 @@
+services:
+  api:
+    build: ./
+    container_name: api
+    environment:
+      - API_PORT=${API_PORT}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    ports:
+      - "${API_PORT}:${API_PORT}"
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:${API_PORT}/health" ]
+      start_period: 3m
+      interval: 3m
+      timeout: 30s
+      retries: 1
+
+  postgres:
+    image: postgres:18
+    container_name: postgres
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT}:5432"
+    environment:
+      - POSTGRES_USER=${DB_USERNAME}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    restart: unless-stopped
+    volumes:
+      - ./init-db:/docker-entrypoint-initdb.d
+      - .postgres:/var/lib/postgresql/18/docker
+    healthcheck:
+      start_period: 3m
+      test: [ "CMD-SHELL", "pg_isready -U ${DB_USERNAME} -d logs" ]
+      interval: 3m
+      timeout: 30s
+      retries: 1
+
+volumes:
+  .postgres:
